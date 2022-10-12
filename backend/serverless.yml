@@ -1,7 +1,7 @@
 # TODO: Change the name of the org 
 org: abdoulhakamtaba
-app: serverless-todoapp
-service: serverless-todoapp
+app: serverless-todoapp-taba
+service: serverless-todoapp-taba
 
 plugins:
   - serverless-webpack
@@ -16,6 +16,7 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
 
+  # X-Ray Tracing
   tracing:
     lambda: true
     apiGateway: true
@@ -23,9 +24,9 @@ provider:
   # Use these variables in the functions and resouorces section below. For example, 
   # ${self:provider.environment.ATTACHMENT_S3_BUCKET}
   environment:
-    PROJECT_NAME: udacity-todo
-    TODOS_TABLE: udacity-serverless-todoapp-${self:provider.stage}
-    S3_BUCKET_NAME: udacity-serverless-todoapp-${self:provider.stage}
+    PROJECT_NAME: udacity-todo-taba
+    TODOS_TABLE: udacity-serverless-todoapp-taba-${self:provider.stage}
+    S3_BUCKET_NAME: udacity-serverless-todoapp-taba-${self:provider.stage}
 
 
 custom:
