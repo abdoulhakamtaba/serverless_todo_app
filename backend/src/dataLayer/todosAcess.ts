@@ -1,17 +1,24 @@
 import * as AWS from 'aws-sdk'
-import { DocumentClient } from 'aws-sdk/clients/dynamodb'
+import * as AWSXRay from 'aws-xray-sdk'
+//import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate';
 import { Types } from 'aws-sdk/clients/s3';
+import {getDocumentClient} from "@shelf/aws-ddb-with-xray";
 
+const XAWS = AWSXRay.captureAWS(AWS)
 
 // TODO: Implement the dataLayer logic
 export class ToDoAccess {
     constructor(
-        private readonly docClient: DocumentClient = new AWS.DynamoDB.DocumentClient(),
-        private readonly s3Client: Types = new AWS.S3({ signatureVersion: 'v4' }),
+        //private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
+        private readonly s3Client: Types = new XAWS.S3({ signatureVersion: 'v4' }),
         private readonly todoTable = process.env.TODOS_TABLE,
-        private readonly s3BucketName = process.env.S3_BUCKET_NAME) {
+        private readonly s3BucketName = process.env.S3_BUCKET_NAME,
+        private readonly DB = getDocumentClient({ //AWS XRAY TRACING
+            ddbParams: {region: process.env.REGION, convertEmptyValues: true},
+            ddbClientParams: {region: process.env.REGION},
+        })) {
     }
 
     async getAllToDo(userId: string): Promise<TodoItem[]> {
@@ -28,7 +35,7 @@ export class ToDoAccess {
             }
         };
 
-        const result = await this.docClient.query(params).promise();
+        const result = await this.DB.query(params).promise();
         console.log(result);
         const items = result.Items;
 
@@ -43,7 +50,7 @@ export class ToDoAccess {
             Item: todoItem,
         };
 
-        const result = await this.docClient.put(params).promise();
+        const result = await this.DB.put(params).promise();
         console.log(result);
 
         return todoItem as TodoItem;
@@ -72,7 +79,7 @@ export class ToDoAccess {
             ReturnValues: "ALL_NEW"
         };
 
-        const result = await this.docClient.update(params).promise();
+        const result = await this.DB.update(params).promise();
         console.log(result);
         const attributes = result.Attributes;
 
@@ -90,7 +97,7 @@ export class ToDoAccess {
             },
         };
 
-        const result = await this.docClient.delete(params).promise();
+        const result = await this.DB.delete(params).promise();
         console.log(result);
 
         return "" as string;
